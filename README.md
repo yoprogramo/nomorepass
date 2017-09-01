@@ -3,6 +3,12 @@ Libraries to use nomorepass.com security services
 
 nomorepass is a library to use nomorepass in Node. It is intended to use in any environment, so it does not generate / print the qr-code needed, instead provides the text that should be included in the qrcode (you can generate using any qrcode libraries).
 
+## Installation
+
+```
+npm install nomorepass
+```
+
 ## Usage
 
 ```js
@@ -33,6 +39,6 @@ nomorepass is a library to use nomorepass in Node. It is intended to use in any 
 ```
 ## Help / more info
 
-Visit nomorepass.com or leave a Issue
+Visit [nomorepass.com](https://nomorepass.com) or leave a Issue
 
 (C) 2017 Nomorepass.com
