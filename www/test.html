@@ -1,0 +1,88 @@
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>NomorePass JS libraries test page</title>
+        <link href="https://fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="css/normalize.css">
+        <link rel="stylesheet" href="css/skeleton.css">
+    </head>
+    <body>
+        <div class="container">
+                <div class="row" style="margin-top: 25%">
+                    <div class="one-half column">
+                            <h4>NoMorePass library example</h4>
+                            <label>User</label><input type="text" id="username"/>
+                            <label>Password</label><input type="text" id="password"/>
+                    </div>
+                    <div class="one-half column" style="height:256px">
+                        <div id="qrcode">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="one-half column">
+                        <button class="button-primary" id="getpassword" onclick="getpassword()">Send from app</button>
+                        <button class="button-primary" id="sendpassword" onclick="sendpassword()">Send to app</button>
+                    </div>
+                </div>
+        </div>
+        <script src="js/aes.js"></script>
+        <script src="js/qrcode.js"></script>
+        <script src="js/nomorepass.js"></script>
+        <script>
+            function getpassword() {
+                // Generate qr, wait on receiving pass 
+                // and fill the fields
+                var qrelement = document.querySelector('#qrcode');
+                NomorePass.init();
+                NomorePass.getQrText(window.location.href,function(text){
+                    qrelement.innerHTML="";
+                    qrelement.style.display="block";
+                    new QRCode(qrelement, text);
+                    qrelement.onclick=function(e){
+                        window.open(text,'_system');
+                    };
+                    // Waiting...
+                    NomorePass.start(function(error,data){
+                        if (error)
+                            alert (data);
+                        else {
+                            document.querySelector('#username').value=data.user;
+                            document.querySelector('#password').value=data.password;
+                            qrelement.innerHTML="";
+                        }
+                    });
+                });
+            }
+            function sendpassword() {
+                // Generate QR to receive the data
+                var qrelement = document.querySelector('#qrcode');
+                NomorePass.init();
+                var user = document.querySelector('#username').value;
+                var pass = document.querySelector('#password').value;
+                NomorePass.getQrSend ('testpage',user,pass,{type:'pwd'}, 
+                    function (text){
+                        if (text==false){
+                            alert("Error calling nmp");
+                        } else {
+                            // Show the qr with this text
+                            qrelement.innerHTML="";
+                            qrelement.style.display="block";
+                            new QRCode(qrelement, text);
+                            qrelement.onclick=function(e){
+                                window.open(text,'_system');
+                            };
+                            // wait to be scanned and received
+                            // by the app
+                            NomorePass.send (function(data){
+                                qrelement.innerHTML="<p>Password received</p>";
+                                console.log(data);
+                                // hide qr here.
+                            })
+                        }
+                    }
+                );
+            }
+        </script>
+    </body>
+</html>

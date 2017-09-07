@@ -1,9 +1,9 @@
 # nomorepass
 Libraries to use nomorepass.com security services
 
-nomorepass is a library to use nomorepass in Node. It is intended to use in any environment, so it does not generate / print the qr-code needed, instead provides the text that should be included in the qrcode (you can generate using any qrcode libraries).
+nomorepass is a library to use nomorepass in Node or browser. It is intended to use in any environment, so it does not generate / print the qr-code needed, instead provides the text that should be included in the qrcode (you can generate using any qrcode libraries).
 
-## Installation
+## Node Installation
 
 ```
 npm install nomorepass
@@ -58,6 +58,76 @@ nmp.getQrSend (null,user,pass,{type:'pwd'},
             // wait to be scanned and received
             // by the app
             nmp.send (function(data){
+                console.log(data);
+                // hide qr here.
+            })
+        }
+    }
+);
+```
+## In the browser
+
+There are included libraries to use directly on the browser inside the www directory, to use inside your page you should include this files:
+
+```html
+<script src="js/aes.js"></script>
+<script src="js/nomorepass.js"></script>
+```
+
+We have included for demo purpouses the QRCode for Javascript library from http://jeromeetienne.github.com/jquery-qrcode/
+
+```html
+<script src="js/qrcode.js"></script>
+```
+
+Designate a div where show the qr (#qrcode in the example).
+
+To receive a password (using QRCode to show the qr) and fill two fields (#username and #password):
+
+```js
+var qrelement = document.querySelector('#qrcode');
+NomorePass.init();
+NomorePass.getQrText(window.location.href,function(text){
+    qrelement.innerHTML="";
+    qrelement.style.display="block";
+    new QRCode(qrelement, text);
+    qrelement.onclick=function(e){
+        window.open(text,'_system');
+    };
+    // Waiting...
+    NomorePass.start(function(error,data){
+        if (error)
+            alert (data);
+        else {
+            document.querySelector('#username').value=data.user;
+            document.querySelector('#password').value=data.password;
+            qrelement.innerHTML="";
+        }
+    });
+});
+```
+
+To send user and pass to the phone:
+
+```js
+var qrelement = document.querySelector('#qrcode');
+NomorePass.init();
+NomorePass.getQrSend ('testpage',user,pass,{type:'pwd'}, 
+    function (text){
+        if (text==false){
+            alert("Error calling nmp");
+        } else {
+            // Show the qr with this text
+            qrelement.innerHTML="";
+            qrelement.style.display="block";
+            new QRCode(qrelement, text);
+            qrelement.onclick=function(e){
+                window.open(text,'_system');
+            };
+            // wait to be scanned and received
+            // by the app (optional)
+            NomorePass.send (function(data){
+                qrelement.innerHTML="<p>Password received</p>";
                 console.log(data);
                 // hide qr here.
             })
