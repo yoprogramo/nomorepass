@@ -136,6 +136,11 @@ NomorePass.getQrSend ('testpage',user,pass,{type:'pwd'},
 );
 ```
 
+### test
+
+You can test the browser libraries by opening www/test.html in your favourite browser and receive / send passwords.
+
+
 ## How to use NoMorePass
 
 1. Download and install the mobile app
