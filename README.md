@@ -67,7 +67,7 @@ nmp.getQrSend (null,user,pass,{type:'pwd'},
 ```
 ## In the browser
 
-There are included libraries to use directly on the browser inside the www directory, to use inside your page you should include this files:
+There are included libraries to use directly on the browser. You'll find inside the www directory. To use inside your page you should include this files:
 
 ```html
 <script src="js/aes.js"></script>
