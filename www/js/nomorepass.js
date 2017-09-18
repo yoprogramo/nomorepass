@@ -42,7 +42,7 @@ var NomorePass = {
         NomorePass.stopped = false;
     },
     decrypt: function (password,token){
-        var pass = CryptoJS.AES.decrypt(password, token).toString(CryptoJS.enc.Latin1);
+        var pass = CryptoJS.AES.decrypt(password, token).toString(CryptoJS.enc.Utf8);
         return pass;
     },
     newtoken: function () {
