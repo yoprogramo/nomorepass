@@ -182,7 +182,7 @@ var NomorePass = {
         NomorePass.post(NomorePass.config.pingUrl,{'device': 'WEBDEVICE', 
         ticket:ticket},function(data){
             if ((data.resultado=='ok') && (data.ping=='ok')) {
-              setTimeout(function(){NomorePass.ping("XXXXXXXXXXXX"+ticket)},4000);
+              setTimeout(function(){NomorePass.ping("XXXXXXXXXXXX"+ticket,callback)},4000);
             } else {
                console.log(data);
                if (typeof callback == 'function') {
@@ -212,10 +212,3 @@ var NomorePass = {
 } else {
     console.log("Already loaded");
 }  
-
-            
-
-            
-
-
-
