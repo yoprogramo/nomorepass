@@ -1,6 +1,6 @@
 {
   "name": "nomorepass",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Libraries to use nomorepass.com security services",
   "main": "./lib/nomorepass.js",
   "directories": {
@@ -17,7 +17,9 @@
   "keywords": [
     "nomorepass",
     "security",
-    "login"
+    "login",
+    "password",
+    "password manager"
   ],
   "author": "Jose Antonio Espinosa (yoprogramo@gmail.com)",
   "license": "Apache-2.0",
