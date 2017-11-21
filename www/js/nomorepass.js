@@ -178,6 +178,9 @@ var NomorePass = {
         setTimeout(function(){NomorePass.ping(txt,callback);},4000);
     },
     ping: function (data,callback){
+        if (NomorePass.stopped){
+            NomorePass.stopped = false;
+        }
         var ticket=data.substring(12);
         NomorePass.post(NomorePass.config.pingUrl,{'device': 'WEBDEVICE', 
         ticket:ticket},function(data){
