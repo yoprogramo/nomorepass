@@ -180,19 +180,20 @@ var NomorePass = {
     ping: function (data,callback){
         if (NomorePass.stopped){
             NomorePass.stopped = false;
+        } else {
+            var ticket=data.substring(12);
+            NomorePass.post(NomorePass.config.pingUrl,{'device': 'WEBDEVICE', 
+            ticket:ticket},function(data){
+                if ((data.resultado=='ok') && (data.ping=='ok')) {
+                  setTimeout(function(){NomorePass.ping("XXXXXXXXXXXX"+ticket,callback)},4000);
+                } else {
+                   console.log(data);
+                   if (typeof callback == 'function') {
+                    callback(data);
+                   }
+                }
+              });
         }
-        var ticket=data.substring(12);
-        NomorePass.post(NomorePass.config.pingUrl,{'device': 'WEBDEVICE', 
-        ticket:ticket},function(data){
-            if ((data.resultado=='ok') && (data.ping=='ok')) {
-              setTimeout(function(){NomorePass.ping("XXXXXXXXXXXX"+ticket,callback)},4000);
-            } else {
-               console.log(data);
-               if (typeof callback == 'function') {
-                callback(data);
-               }
-            }
-          });
     },
     post : function (url,params,callback) {
         var formData = new FormData(); 
