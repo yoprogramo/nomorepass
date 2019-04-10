@@ -180,6 +180,7 @@ var NomorePass = {
     ping: function (data,callback){
         if (NomorePass.stopped){
             NomorePass.stopped = false;
+            return;
         } else {
             var ticket=data.substring(12);
             NomorePass.post(NomorePass.config.pingUrl,{'device': 'WEBDEVICE', 
