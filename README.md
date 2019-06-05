@@ -155,4 +155,4 @@ You can test the browser libraries by opening www/test.html in your favourite br
 
 Visit [nomorepass.com](https://nomorepass.com) or leave an Issue
 
-(C) 2017 Nomorepass.com
+(C) 2019 Nomorepass.com
