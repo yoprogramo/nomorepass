@@ -21,7 +21,7 @@
                 </div>
                 <div class="row">
                     <div class="one-half column">
-                        <button class="button-primary" id="getpassword" onclick="getpassword()">Send from app</button>
+                        <button class="button-primary" id="getpassword" onclick="getpassword()">Receive from app</button>
                         <button class="button-primary" id="sendpassword" onclick="sendpassword()">Send to app</button>
                     </div>
                 </div>
@@ -34,7 +34,7 @@
                 // Generate qr, wait on receiving pass 
                 // and fill the fields
                 var qrelement = document.querySelector('#qrcode');
-                NomorePass.init();
+                NomorePass.init({'apikey':'MYAPIKEY'});
                 NomorePass.getQrText(window.location.href,function(text){
                     qrelement.innerHTML="";
                     qrelement.style.display="block";
@@ -57,7 +57,7 @@
             function sendpassword() {
                 // Generate QR to receive the data
                 var qrelement = document.querySelector('#qrcode');
-                NomorePass.init();
+                NomorePass.init({'apikey':'MYAPIKEY'});
                 var user = document.querySelector('#username').value;
                 var pass = document.querySelector('#password').value;
                 NomorePass.getQrSend ('testpage',user,pass,{type:'pwd'}, 

@@ -39,6 +39,8 @@ var NomorePass = {
             NomorePass.config.referenceUrl = "https://www.nomorepass.com/api/reference.php";
         if (!('grantUrl' in NomorePass.config))
             NomorePass.config.grantUrl = "https://www.nomorepass.com/api/grant.php";
+        if (!('apikey' in NomorePass.config))
+            NomorePass.config.apikey='FREEAPIKEY';
         NomorePass.stopped = false;
     },
     decrypt: function (password,token){
@@ -210,6 +212,7 @@ var NomorePass = {
             } 
         }
         xmlHttp.open("post", url); 
+        xmlHttp.setRequestHeader('apikey',NomorePass.config.apikey);
         xmlHttp.send(formData); 
     }
 };

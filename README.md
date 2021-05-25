@@ -16,7 +16,7 @@ To receive passwords:
 ```js
  var nmp = require('nomorepass');
 // Initialize the environment (do it each time you need)
- nmp.init();
+ nmp.init({'apikey':'MYAPIKEY'});
  // Launch the process for testsite (replace with you app-id)
  nmp.getQrText('testsite', function(text){
     if (text==false) {
@@ -45,7 +45,7 @@ To send passwords:
 ```js
 var nmp = require('nomorepass');
 // Initialize the environment (do it each time you need)
-nmp.init();
+nmp.init({'apikey':'MYAPIKEY'});
 var user = 'usernametosend';
 var pass = 'thepasstosend';
 nmp.getQrSend (null,user,pass,{type:'pwd'}, 
@@ -86,7 +86,7 @@ To receive a password (using QRCode to show the qr) and fill two fields (#userna
 
 ```js
 var qrelement = document.querySelector('#qrcode');
-NomorePass.init();
+NomorePass.init({'apikey':'MYAPIKEY'});
 NomorePass.getQrText(window.location.href,function(text){
     qrelement.innerHTML="";
     qrelement.style.display="block";
@@ -111,7 +111,7 @@ To send user and pass to the phone:
 
 ```js
 var qrelement = document.querySelector('#qrcode');
-NomorePass.init();
+NomorePass.init({'apikey':'MYAPIKEY'});
 NomorePass.getQrSend ('testpage',user,pass,{type:'pwd'}, 
     function (text){
         if (text==false){
@@ -155,4 +155,4 @@ You can test the browser libraries by opening www/test.html in your favourite br
 
 Visit [nomorepass.com](https://nomorepass.com) or leave an Issue
 
-(C) 2019 Nomorepass.com
+(C) 2021 Nomorepass.com
