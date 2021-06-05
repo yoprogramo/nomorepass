@@ -175,6 +175,82 @@ var NomorePass = {
             }
         );
     },
+    getQrNomoreKeys: function (site, user, pass, type, extra, callback) {
+        // Protocol 2 reverse
+        // First we made grant then ping
+        // for nomorekeys phisical keys (soundkey or lightkey)
+        if (type!='SOUNDKEY' && type!='LIGHTKEY')
+            return null;
+        if (site==null) {
+            // site is the id device of origin, if null use generic WEBDEVICE
+            site = "WEBDEVICE";
+        }
+        var device = "WEBDEVICE";
+        NomorePass.post(NomorePass.config.referenceUrl,
+            { 'device': device, 
+              'fromdevice': device},
+            function(response){
+                if (response.resultado=='ok') {
+                    var tokenfb = response.token;
+                    NomorePass.post(NomorePass.config.getidUrl,{
+                        'site' : site
+                   }, function(data){
+                      if (data.resultado=='ok') {
+                        var tk = NomorePass.newtoken();
+                        NomorePass.token = tk;
+                        NomorePass.ticket = data.ticket;
+                        if (type=='SOUNDKEY'){
+                            pass = pass.substr(0,14).padEnd(14," ");
+                        } else {
+                            pass=""+parseInt(pass)%65536;
+                        }
+                        var ep = CryptoJS.AES.encrypt(pass, tk);
+                        if (typeof extra == 'object') {
+                            if ('extra' in extra) {
+                                if (typeof extra['extra']=='object' && 'secret' in extra['extra']) {
+                                    extra['extra']['secret']=CryptoJS.AES.encrypt(extra['extra']['secret'],tk);
+                                    extra['extra']['type'] = type.toLowerCase();
+                                } else {
+                                    extra['extra'] = {'type':type.toLowerCase()};
+                                }
+                            }
+                        } else {
+                            extra = {'extra': {'type': type.toLowerCase()}};
+                        }
+                        extra = JSON.stringify(extra);
+                        // Make the grant and return text
+                        if (typeof extra == 'object') {
+                            extra = JSON.stringify(extra);
+                        }
+                        NomorePass.post(NomorePass.config.grantUrl,{
+                            'grant': 'grant',
+                            'ticket': NomorePass.ticket,
+                            'user' : user,
+                            'password': ''+ep,
+                            'extra': extra
+                        }, function (resp){
+                            if (resp.resultado=='ok') {
+                                console.log("Granted");
+                            } else {
+                                console.log(response);
+                            }
+                        });
+                        var text = 'nomorepass://SENDPASS'+tk+data.ticket+site;
+                        if (typeof callback == 'function') {
+                            callback(text);
+                        }
+                      } else {
+                        if (typeof callback == 'function') {
+                          callback(false);
+                        }
+                      }
+                   });
+                } else {
+                    callback(false);
+                }
+            }
+        );
+    },
     send: function (callback){
         var txt = "XXXXXXXXXXXX"+NomorePass.ticket;
         setTimeout(function(){NomorePass.ping(txt,callback);},4000);

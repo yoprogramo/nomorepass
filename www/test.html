@@ -23,6 +23,7 @@
                     <div class="one-half column">
                         <button class="button-primary" id="getpassword" onclick="getpassword()">Receive from app</button>
                         <button class="button-primary" id="sendpassword" onclick="sendpassword()">Send to app</button>
+                        <button class="button-primary" id="sendkey" onclick="sendkey()">Send key</button>
                     </div>
                 </div>
         </div>
@@ -61,6 +62,35 @@
                 var user = document.querySelector('#username').value;
                 var pass = document.querySelector('#password').value;
                 NomorePass.getQrSend ('testpage',user,pass,{type:'pwd'}, 
+                    function (text){
+                        if (text==false){
+                            alert("Error calling nmp");
+                        } else {
+                            // Show the qr with this text
+                            qrelement.innerHTML="";
+                            qrelement.style.display="block";
+                            new QRCode(qrelement, text);
+                            qrelement.onclick=function(e){
+                                window.open(text,'_system');
+                            };
+                            // wait to be scanned and received
+                            // by the app
+                            NomorePass.send (function(data){
+                                qrelement.innerHTML="<p>Password received</p>";
+                                console.log(data);
+                                // hide qr here.
+                            })
+                        }
+                    }
+                );
+            }
+            function sendkey() {
+                // Generate QR to receive the data
+                var qrelement = document.querySelector('#qrcode');
+                NomorePass.init({'apikey':'MYAPIKEY'});
+                var user = document.querySelector('#username').value;
+                var pass = document.querySelector('#password').value;
+                NomorePass.getQrNomoreKeys ('testkey',user,pass,"SOUNDKEY", {'extra':{}}, 
                     function (text){
                         if (text==false){
                             alert("Error calling nmp");
