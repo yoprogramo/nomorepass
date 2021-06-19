@@ -274,6 +274,49 @@ var NomorePass = {
               });
         }
     },
+    sendRemotePassToDevice: function (cloud,deviceid,secret,username,password,callback) {
+        // Envía una contraseña remota a un dispositivo cloud
+        // cloud: url de /extern/send_ticket 
+        // devideid: id del dispositivo
+        // secret: md5 del secreto del dispositivo
+        // username: usuario
+        // password: contraseña
+        // callback función a llamar en caso de éxito
+        let cloudurl = cloud;
+        if (cloudurl==null)
+            cloudurl="https://api.nmkeys.com/extern/send_ticket";
+        let token = secret;
+        NomorePass.post(NomorePass.config.getidUrl, {
+            'site': 'Send remote pass',
+        }, function(data){
+            if (data.resultado=='ok') {
+                NomorePass.ticket = data.ticket;
+                let ep = CryptoJS.AES.encrypt(password, token);
+                NomorePass.post(NomorePass.config.grantUrl, {
+                    'grant': 'grant', 
+                    'ticket': NomorePass.ticket, 
+                    'user': username, 
+                    'password' : ''+ep, 
+                    'extra': JSON.stringify({'type': 'remote'})
+                }, function (data){
+                    if (data.resultado=='ok') {
+                        NomorePass.postJson(cloud,
+                            {'hash': token.substring(0,10), 
+                            'deviceid': deviceid, 
+                            'ticket': NomorePass.ticket},
+                            function (data) {
+                                if (typeof callback == 'function')
+                                    callback (data);
+                            }, (data)=>{console.log(data)})
+                    } else {
+                        console.log (data);
+                    }
+                })
+            } else {
+                console.log (data);
+            }
+        })
+    },
     post : function (url,params,callback) {
         var formData = new FormData(); 
         for(var name in params) {
@@ -290,7 +333,29 @@ var NomorePass = {
         xmlHttp.open("post", url); 
         xmlHttp.setRequestHeader('apikey',NomorePass.config.apikey);
         xmlHttp.send(formData); 
+    },
+    postJson : function (url,params,callback,fail) {
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function()
+        {
+            if(xmlHttp.readyState == 4 && xmlHttp.status == 200)
+            {
+                callback(JSON.parse(xmlHttp.responseText));
+            } 
+            if(xmlHttp.readyState == 4 && xmlHttp.status > 400)
+            {
+                fail(JSON.parse(xmlHttp.responseText));
+            } 
+        }
+        try {
+            xmlHttp.open("post",url); 
+            xmlHttp.setRequestHeader("Content-Type", "application/json");
+            xmlHttp.send(JSON.stringify(params));     
+        } catch (error) {
+            fail({status:'ko',error: 'connection failed'})
+        } 
     }
+
 };
         
 } else {
