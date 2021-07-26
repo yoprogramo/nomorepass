@@ -26,19 +26,19 @@ var NomorePass = {
             NomorePass.config = config;
         }
         if (!('getidUrl' in NomorePass.config))
-            NomorePass.config.getidUrl = "https://www.nomorepass.com/api/getid.php";
+            NomorePass.config.getidUrl = "https://nomorepass.com/api/getid.php";
         if (!('checkUrl' in NomorePass.config))
-            NomorePass.config.checkUrl = "https://www.nomorepass.com/api/check.php";
+            NomorePass.config.checkUrl = "https://nomorepass.com/api/check.php";
         if (!('authUrl' in NomorePass.config))
-            NomorePass.config.authUrl = "https://www.nomorepass.com/api/auth.php";
+            NomorePass.config.authUrl = "https://nomorepass.com/api/auth.php";
         if (!('assocUrl' in NomorePass.config))
-            NomorePass.config.assocUrl = "https://www.nomorepass.com/api/assoc.php";
+            NomorePass.config.assocUrl = "https://nomorepass.com/api/assoc.php";
         if (!('pingUrl' in NomorePass.config))
-            NomorePass.config.pingUrl = "https://www.nomorepass.com/api/ping.php";
+            NomorePass.config.pingUrl = "https://nomorepass.com/api/ping.php";
         if (!('referenceUrl' in NomorePass.config))
-            NomorePass.config.referenceUrl = "https://www.nomorepass.com/api/reference.php";
+            NomorePass.config.referenceUrl = "https://nomorepass.com/api/reference.php";
         if (!('grantUrl' in NomorePass.config))
-            NomorePass.config.grantUrl = "https://www.nomorepass.com/api/grant.php";
+            NomorePass.config.grantUrl = "https://nomorepass.com/api/grant.php";
         if (!('apikey' in NomorePass.config))
             NomorePass.config.apikey='FREEAPIKEY';
         NomorePass.stopped = false;
@@ -179,7 +179,7 @@ var NomorePass = {
         // Protocol 2 reverse
         // First we made grant then ping
         // for nomorekeys phisical keys (soundkey or lightkey)
-        if (type!='SOUNDKEY' && type!='LIGHTKEY')
+        if (type!='SOUNDKEY' && type!='LIGHTKEY' && type!='BLEKEY')
             return null;
         if (site==null) {
             // site is the id device of origin, if null use generic WEBDEVICE
@@ -201,7 +201,8 @@ var NomorePass = {
                         NomorePass.ticket = data.ticket;
                         if (type=='SOUNDKEY'){
                             pass = pass.substr(0,14).padEnd(14," ");
-                        } else {
+                        } else 
+                            if (type=='LIGHTKEY') {
                             pass=""+parseInt(pass)%65536;
                         }
                         var ep = CryptoJS.AES.encrypt(pass, tk);
@@ -235,7 +236,7 @@ var NomorePass = {
                                 console.log(response);
                             }
                         });
-                        var text = 'nomorepass://SENDPASS'+tk+data.ticket+site;
+                        var text = 'nomorepass://'+type+tk+data.ticket+site;
                         if (typeof callback == 'function') {
                             callback(text);
                         }
