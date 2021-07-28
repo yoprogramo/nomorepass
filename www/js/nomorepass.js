@@ -236,7 +236,7 @@ var NomorePass = {
                                 console.log(response);
                             }
                         });
-                        var text = 'nomorepass://'+type+tk+data.ticket+site;
+                        var text = 'nomorekeys://'+type+tk+data.ticket+site;
                         if (typeof callback == 'function') {
                             callback(text);
                         }
