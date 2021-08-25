@@ -208,15 +208,18 @@ var NomorePass = {
                         var ep = CryptoJS.AES.encrypt(pass, tk);
                         if (typeof extra == 'object') {
                             if ('extra' in extra) {
-                                if (typeof extra['extra']=='object')
+                                if (typeof extra['extra']=='object') {
                                     if ('secret' in extra['extra']) {
                                     extra['extra']['secret']=""+CryptoJS.AES.encrypt(extra['extra']['secret'],tk);
                                     extra['extra']['type'] = type.toLowerCase();
+                                    } else {
+                                        extra['extra']['type'] = type.toLowerCase();
+                                    }
                                 } else {
-                                    extra['extra']['type'] = type.toLowerCase();
-                                } else {
-                                    extra['extra'] = {'type':type.toLowerCase()};
+                                    extra['extra'] = {'type':type.toLowerCase()};    
                                 }
+                            } else {
+                                extra['extra'] = {'type':type.toLowerCase()};
                             }
                         } else {
                             extra = {'extra': {'type': type.toLowerCase()}};
