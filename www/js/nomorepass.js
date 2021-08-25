@@ -208,8 +208,11 @@ var NomorePass = {
                         var ep = CryptoJS.AES.encrypt(pass, tk);
                         if (typeof extra == 'object') {
                             if ('extra' in extra) {
-                                if (typeof extra['extra']=='object' && 'secret' in extra['extra']) {
+                                if (typeof extra['extra']=='object')
+                                    if ('secret' in extra['extra']) {
                                     extra['extra']['secret']=""+CryptoJS.AES.encrypt(extra['extra']['secret'],tk);
+                                    extra['extra']['type'] = type.toLowerCase();
+                                } else {
                                     extra['extra']['type'] = type.toLowerCase();
                                 } else {
                                     extra['extra'] = {'type':type.toLowerCase()};
