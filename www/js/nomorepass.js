@@ -20,6 +20,7 @@ var NomorePass = {
     callback: null,
     qrcode: "#qrcode",
     stopped: false,
+    expiry: null,
     config: {},
     init: function (config) {
         if (typeof config == 'object') {
@@ -59,9 +60,14 @@ var NomorePass = {
     getQrText: function (site, callback) {
         // Protocolo 2 NMP
         // First, get Ticket
-        NomorePass.post(NomorePass.config.getidUrl,{
-            'site' : site
-        }, function(data){
+        let params = {
+            "site": site
+        };
+        if (NomorePass.expiry!=null) {
+            params['expiry'] = NomorePass.expiry;
+        }
+        NomorePass.post(NomorePass.config.getidUrl,params,
+             function(data){
                 if (data.resultado=='ok') {
                     var tk = NomorePass.newtoken();
                     NomorePass.token = tk;
@@ -134,9 +140,14 @@ var NomorePass = {
             function(response){
                 if (response.resultado=='ok') {
                     var tokenfb = response.token;
-                    NomorePass.post(NomorePass.config.getidUrl,{
-                        'site' : site
-                   }, function(data){
+                    let params = {
+                        "site": site
+                    };
+                    if (NomorePass.expiry!=null) {
+                        params['expiry'] = NomorePass.expiry;
+                    }
+                    NomorePass.post(NomorePass.config.getidUrl,params,
+                    function(data){
                       if (data.resultado=='ok') {
                         var tk = NomorePass.newtoken();
                         NomorePass.token = tk;
@@ -192,9 +203,14 @@ var NomorePass = {
             function(response){
                 if (response.resultado=='ok') {
                     var tokenfb = response.token;
-                    NomorePass.post(NomorePass.config.getidUrl,{
-                        'site' : site
-                   }, function(data){
+                    let params = {
+                        "site": site
+                    };
+                    if (NomorePass.expiry!=null) {
+                        params['expiry'] = NomorePass.expiry;
+                    }
+                    NomorePass.post(NomorePass.config.getidUrl,params,
+                     function(data){
                       if (data.resultado=='ok') {
                         var tk = NomorePass.newtoken();
                         NomorePass.token = tk;
@@ -293,9 +309,14 @@ var NomorePass = {
         if (cloudurl==null)
             cloudurl="https://api.nmkeys.com/extern/send_ticket";
         let token = secret;
-        NomorePass.post(NomorePass.config.getidUrl, {
-            'site': 'Send remote pass',
-        }, function(data){
+        let params = {
+            "site": 'Send remote pass'
+        };
+        if (NomorePass.expiry!=null) {
+            params['expiry'] = NomorePass.expiry;
+        }
+        NomorePass.post(NomorePass.config.getidUrl, params,
+         function(data){
             if (data.resultado=='ok') {
                 NomorePass.ticket = data.ticket;
                 let ep = CryptoJS.AES.encrypt(password, token);

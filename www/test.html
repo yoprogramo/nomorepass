@@ -36,6 +36,7 @@
                 // and fill the fields
                 var qrelement = document.querySelector('#qrcode');
                 NomorePass.init({'apikey':'MYAPIKEY'});
+                NomorePass.expiry = Math.trunc(Date.now() / 1000 + 30); // 30 seconds
                 NomorePass.getQrText(window.location.href,function(text){
                     qrelement.innerHTML="";
                     qrelement.style.display="block";
@@ -45,8 +46,10 @@
                     };
                     // Waiting...
                     NomorePass.start(function(error,data){
-                        if (error)
+                        if (error) {
                             alert (data);
+                            document.querySelector('#qrcode').innerHTML="";
+                        }
                         else {
                             document.querySelector('#username').value=data.user;
                             document.querySelector('#password').value=data.password;
