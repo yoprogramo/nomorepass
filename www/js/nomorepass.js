@@ -191,7 +191,7 @@ var NomorePass = {
         // First we made grant then ping
         // for nomorekeys phisical keys (soundkey or lightkey)
         if (type!='SOUNDKEY' && type!='LIGHTKEY' && type!='BLEKEY')
-            return null;
+            type='KEY';
         if (site==null) {
             // site is the id device of origin, if null use generic WEBDEVICE
             site = "WEBDEVICE";
@@ -227,15 +227,18 @@ var NomorePass = {
                                 if (typeof extra['extra']=='object') {
                                     if ('secret' in extra['extra']) {
                                     extra['extra']['secret']=""+CryptoJS.AES.encrypt(extra['extra']['secret'],tk);
-                                    extra['extra']['type'] = type.toLowerCase();
-                                    } else {
+                                    }
+                                    if (!('type' in extra['extra'])) {
                                         extra['extra']['type'] = type.toLowerCase();
                                     }
                                 } else {
-                                    extra['extra'] = {'type':type.toLowerCase()};    
+                                    extra['extra'] = {'type':type.toLowerCase()};
                                 }
                             } else {
                                 extra['extra'] = {'type':type.toLowerCase()};
+                            }
+                            if (!('type' in extra)) {
+                                extra['type'] = type.toLowerCase();
                             }
                         } else {
                             extra = {'extra': {'type': type.toLowerCase()}};
