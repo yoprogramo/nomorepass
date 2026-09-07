@@ -18,14 +18,17 @@ To receive passwords:
 // Initialize the environment (do it each time you need)
  nmp.init({'apikey':'MYAPIKEY'});
  // Launch the process for testsite (replace with you app-id)
+ const stopTimer = setTimeout(nmp.stop, 60000);
  nmp.getQrText('testsite', function(text){
     if (text==false) {
+        clearTimeout(stopTimer);
         console.log("Error calling nomorepass");
     } else {
         console.log(text);
         // Show the qr generated for text
         // Start waiting for mobile app scanning 
         nmp.start(function(error,data){
+            clearTimeout(stopTimer);
             if (error) {
                 console.log("Error "+data);
             } else {
@@ -34,8 +37,7 @@ To receive passwords:
                 // {user: 'username', password: 'password', extra: json-encoded-extra-info}
             }
          });
-        // Stop after 1 minute (you can stop manually calling nmp.stop())
-        setTimeout(nmp.stop,60000);
+
     }
  });
 ```
@@ -65,6 +67,25 @@ nmp.getQrSend (null,user,pass,{type:'pwd'},
     }
 );
 ```
+## Node request limits and cancellation
+
+The Node implementation requires Node.js 16 or later (native `AbortController`).
+
+All HTTP requests, including the initial ticket request, have a 15-second timeout
+and cancellation deadline, a 1 MiB response/request body limit, and at most three
+redirects. Transport failures use the existing failure callbacks (`false` for QR
+creation; `(true, errorCode)` while receiving credentials).
+
+`stop()` aborts in-flight requests and clears pending polling timers without
+calling their callbacks. Call `init()` before starting a new session; it also
+cancels work from the previous session. Install any overall application deadline
+before calling `getQrText()`, as shown above.
+
+Tokens use Node's cryptographic random generator (Web Crypto in the browser).
+Protocol 2 requires 12 base62 characters, providing approximately 71 bits of
+entropy. Increasing that entropy requires a coordinated protocol/client change.
+The browser implementation requires Web Crypto and has no insecure fallback.
+
 ## In the browser
 
 There are included libraries to use directly on the browser. You'll find inside the www directory. To use inside your page you should include this files:

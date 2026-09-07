@@ -1,6 +1,6 @@
 {
   "name": "nomorepass",
-  "version": "1.4.9",
+  "version": "1.4.14",
   "description": "Libraries to use nomorepass.com security services",
   "main": "./lib/nomorepass.js",
   "directories": {
@@ -8,7 +8,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test test/*.test.js"
   },
   "repository": {
     "type": "git",

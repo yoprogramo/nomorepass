@@ -52,8 +52,13 @@ var NomorePass = {
       var length = 12,
         charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
         retVal = "";
-        for (var i = 0, n = charset.length; i < length; ++i) {
-            retVal += charset.charAt(Math.floor(Math.random() * n));
+        // Reject values above 247 to avoid bias when mapping bytes to base62.
+        var bytes = new Uint8Array(32);
+        while (retVal.length < length) {
+            crypto.getRandomValues(bytes);
+            for (var i = 0; i < bytes.length && retVal.length < length; ++i) {
+                if (bytes[i] < 248) retVal += charset.charAt(bytes[i] % charset.length);
+            }
         }
         return retVal;  
     },
