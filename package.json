@@ -1,6 +1,6 @@
 {
   "name": "nomorepass",
-  "version": "1.4.14",
+  "version": "1.4.15",
   "description": "Libraries to use nomorepass.com security services",
   "main": "./lib/nomorepass.js",
   "directories": {

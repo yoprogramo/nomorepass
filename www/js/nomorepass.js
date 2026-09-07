@@ -22,7 +22,24 @@ var NomorePass = {
     stopped: false,
     expiry: null,
     config: {},
+    activeRequests: new Set(),
+    pollingTimers: new Set(),
+    schedulePoll: function (callback, delay) {
+        if (NomorePass.stopped) return;
+        var timer = setTimeout(function () {
+            NomorePass.pollingTimers.delete(timer);
+            callback();
+        }, delay);
+        NomorePass.pollingTimers.add(timer);
+    },
+    cancelPending: function () {
+        for (var request of NomorePass.activeRequests) request.cancel();
+        NomorePass.activeRequests.clear();
+        for (var timer of NomorePass.pollingTimers) clearTimeout(timer);
+        NomorePass.pollingTimers.clear();
+    },
     init: function (config) {
+        NomorePass.cancelPending();
         if (typeof config == 'object') {
             NomorePass.config = config;
         }
@@ -93,7 +110,6 @@ var NomorePass = {
     },
     check: function (callback) {
         if (NomorePass.stopped){
-            NomorePass.stopped = false;
             return; // Execution stopped, not calling callback
         }
         NomorePass.post(NomorePass.config.checkUrl,{
@@ -119,17 +135,18 @@ var NomorePass = {
                                 callback(true,'expired');
                             }
                         } else {
-                            setTimeout(function() {NomorePass.check(callback);}, 3000);
+                            NomorePass.schedulePoll(function() {NomorePass.check(callback);}, 3000);
                         }
                    }
                }
            } else {
-               console.log ("Network Error");
+               if (typeof callback == 'function') callback(true, data.error || 'REQUEST_FAILED');
            }
         });
     },
     stop: function () {
         NomorePass.stopped = true;
+        NomorePass.cancelPending();
     },
     getQrSend: function (site, user, pass, extra, callback) {
         // Protocol 2 reverse
@@ -284,18 +301,17 @@ var NomorePass = {
     },
     send: function (callback){
         var txt = "XXXXXXXXXXXX"+NomorePass.ticket;
-        setTimeout(function(){NomorePass.ping(txt,callback);},4000);
+        NomorePass.schedulePoll(function(){NomorePass.ping(txt,callback);},4000);
     },
     ping: function (data,callback){
         if (NomorePass.stopped){
-            NomorePass.stopped = false;
             return;
         } else {
             var ticket=data.substring(12);
             NomorePass.post(NomorePass.config.pingUrl,{'device': 'WEBDEVICE', 
             ticket:ticket},function(data){
                 if ((data.resultado=='ok') && (data.ping=='ok')) {
-                  setTimeout(function(){NomorePass.ping("XXXXXXXXXXXX"+ticket,callback)},4000);
+                  NomorePass.schedulePoll(function(){NomorePass.ping("XXXXXXXXXXXX"+ticket,callback)},4000);
                 } else {
                    console.log(data);
                    if (typeof callback == 'function') {
@@ -353,47 +369,101 @@ var NomorePass = {
             }
         })
     },
+    // Keep the callback API, but read responses incrementally to bound buffering.
+    request: function (url, makeBody, headers, callback, fail) {
+        if (NomorePass.stopped) return Promise.resolve();
+        var controller = new AbortController();
+        var finished = false;
+        var timer;
+        var request = { cancel: function () { finish(null, true); } };
+        function finish(data, cancelled, failed) {
+            if (finished) return;
+            finished = true;
+            clearTimeout(timer);
+            NomorePass.activeRequests.delete(request);
+            controller.abort();
+            if (!cancelled) {
+                var handler = failed && typeof fail == 'function' ? fail : callback;
+                if (typeof handler == 'function') handler(data);
+            }
+        }
+        function failure(code) {
+            finish({ resultado: 'error', status: 'ko', error: code }, false, true);
+        }
+        NomorePass.activeRequests.add(request);
+        timer = setTimeout(function () { failure('REQUEST_TIMEOUT'); }, 15000);
+        return (async function () {
+            var result;
+            var errorCode = 'REQUEST_FAILED';
+            var reader;
+            try {
+                // Serialize multipart with its boundary before checking the wire size.
+                var body = await new Response(makeBody()).blob();
+                if (finished) return;
+                if (body.size > 1024 * 1024) {
+                    errorCode = 'REQUEST_TOO_LARGE';
+                    throw new Error(errorCode);
+                }
+                var response = await fetch(url, {
+                    method: 'POST', body: body, headers: headers,
+                    signal: controller.signal, redirect: 'error', credentials: 'same-origin'
+                });
+                if (finished) return;
+                if (!response.ok) {
+                    errorCode = 'HTTP_' + response.status;
+                    throw new Error(errorCode);
+                }
+                if (!response.body) throw new Error('Missing response stream');
+                reader = response.body.getReader();
+                var decoder = new TextDecoder();
+                var text = '';
+                var size = 0;
+                while (true) {
+                    var chunk = await reader.read();
+                    if (finished) return;
+                    if (chunk.done) break;
+                    size += chunk.value.byteLength;
+                    if (size > 1024 * 1024) {
+                        errorCode = 'RESPONSE_TOO_LARGE';
+                        throw new Error(errorCode);
+                    }
+                    text += decoder.decode(chunk.value, { stream: true });
+                }
+                text += decoder.decode();
+                errorCode = 'INVALID_JSON';
+                result = JSON.parse(text);
+                if (result === null || typeof result !== 'object' || Array.isArray(result)) {
+                    throw new Error('Expected a JSON object');
+                }
+            } catch (error) {
+                failure(errorCode);
+                return;
+            } finally {
+                if (reader) {
+                    // Do not wait for a remote stream to acknowledge cancellation.
+                    reader.cancel().catch(function () {});
+                    reader.releaseLock();
+                }
+            }
+            // User callback exceptions must not trigger a second failure callback.
+            finish(result, false, false);
+        })();
+    },
     post : function (url,params,callback) {
-        var formData = new FormData(); 
-        for(var name in params) {
-            formData.append(name,params[name]);
-        }
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function()
-        {
-            if(xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            {
-                callback(JSON.parse(xmlHttp.responseText));
-            } 
-        }
-        xmlHttp.open("post", url); 
-        xmlHttp.setRequestHeader('apikey',NomorePass.config.apikey);
-        xmlHttp.send(formData); 
+        return NomorePass.request(url, function () {
+            var formData = new FormData();
+            for (var name in params) formData.append(name, params[name]);
+            return formData;
+        }, { apikey: NomorePass.config.apikey }, callback);
     },
     postJson : function (url,params,callback,fail) {
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function()
-        {
-            if(xmlHttp.readyState == 4 && xmlHttp.status == 200)
-            {
-                callback(JSON.parse(xmlHttp.responseText));
-            } 
-            if(xmlHttp.readyState == 4 && xmlHttp.status > 400)
-            {
-                fail(JSON.parse(xmlHttp.responseText));
-            } 
-        }
-        try {
-            xmlHttp.open("post",url); 
-            xmlHttp.setRequestHeader("Content-Type", "application/json");
-            xmlHttp.send(JSON.stringify(params));     
-        } catch (error) {
-            fail({status:'ko',error: 'connection failed'})
-        } 
+        return NomorePass.request(url, function () {
+            return JSON.stringify(params);
+        }, { 'Content-Type': 'application/json' }, callback, fail);
     }
 
 };
-        
+
 } else {
     console.log("Already loaded");
-}  
+}

@@ -88,6 +88,19 @@ The browser implementation requires Web Crypto and has no insecure fallback.
 
 ## In the browser
 
+Browser requests use Fetch with streamed response reading, a 15-second deadline
+(including the initial ticket request and response download), and a 1 MiB limit
+on the serialized request and decoded response bytes. Redirects are rejected;
+configure the final endpoint URL directly. Modern browsers with Fetch, response
+streams, `Response.blob()`, `TextDecoder`, `AbortController`, and Web Crypto are required.
+
+`stop()` and `init()` abort active requests and clear polling timers without
+calling cancelled callbacks. Call `init()` before starting another session after
+`stop()`. HTTP errors, network failures, invalid JSON, oversized payloads, and
+timeouts are reported through existing failure callbacks. `postJson()` uses its
+optional failure callback, or its normal callback if none is provided.
+
+
 There are included libraries to use directly on the browser. You'll find inside the www directory. To use inside your page you should include this files:
 
 ```html
